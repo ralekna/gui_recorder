@@ -1,0 +1,17 @@
+{
+  "name": "gui_recorder",
+  "version": "0.0.0",
+  "authors": [
+    "Rytis Alekna <r.alekna@gmail.com>"
+  ],
+  "description": "utility to record user actions in web page",
+  "main": "gui_recorder.js",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "recorder"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/ralekna/gui_recorder"
+}
