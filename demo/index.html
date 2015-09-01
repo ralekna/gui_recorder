@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GUI recorder demo</title>
+    <script type="application/javascript" src="../gui_recorder.js"></script>
+    <script type="application/javascript">
+
+        var recorder = new GUIRecorder();
+        recorder.startRecording();
+
+    </script>
+    <style type="text/css">
+        body {
+            height: 2000px;
+        }
+        button {
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+
+<button style="top: 100px; left: 100px;">One</button>
+<button style="top: 200px; left: 100px;">Two</button>
+<button style="top: 100px; left: 200px;">Three</button>
+<button style="top: 200px; left: 200px;">Four</button>
+
+</body>
+</html>
