@@ -97,12 +97,11 @@ var GUIRecorder = (function () {
 
     function playNextEvent (events, currentEvent) {
       if (currentEvent) {
-        triggerEvent(currentEvent);
+        simulateEvent(currentEvent);
         // $(currentEvent.target).trigger(currentEvent);
         cursor.style.left = currentEvent.clientX + 'px';
         cursor.style.top = currentEvent.clientY + 'px';
         cursor.style.backgroundColor = BUTTONS_COLOR_TABLE[currentEvent.buttons]; // .buttons == 0 ) ? 'rgba(251, 8, 8, 0.5)' : 'rgba(158, 158, 158, 0.5)';
-        console.log(currentEvent.buttons);
       }
 
       if (!events.length) {
@@ -148,10 +147,11 @@ var GUIRecorder = (function () {
   };
 
 
-  function triggerEvent(originalEvent) {
+  function simulateEvent(originalEvent) {
     var element = $(originalEvent.target);
     var event = jQuery.Event( originalEvent.type, originalEvent);
     element.trigger(event);
+
   }
 
 
