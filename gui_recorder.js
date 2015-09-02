@@ -3,27 +3,137 @@
  */
 var GUIRecorder = (function () {
 
-  var MOUSE_EVENTS = 'mousemove mousedown mouseup dblclick';
+  var MOUSE_EVENTS = 'mousemove mouseover mouseout mousedown mouseup click DOMMouseScroll'.split(' ');
 
   var WHEEL_EVENTS = '';
 
-  function GUIRecorder () {
+  var MAX_TIMEOUT = 5000;
 
+  function GUIRecorder () {
+    var _this = this;
+    this.logBound = function (event) {
+      _this.logEvent(event);
+    };
   }
 
   GUIRecorder.prototype.startRecording = function startRecording () {
+
+    if (this.events) {
+      throw new Error('Recording already started!');
+    }
+
     this.events = [];
+    var _this = this;
+
+    for (var i = 0; i < MOUSE_EVENTS.length; i++) {
+      window.document.addEventListener(MOUSE_EVENTS[i], this.logBound);
+    }
+
+    window.document.addEventListener('keyup', function (event) {
+      _this.onKeyUpHandler(event);
+    });
+
+    console.log('Recording started!');
+
+  };
+
+  GUIRecorder.prototype.onKeyUpHandler = function (event) {
+    if (event.keyCode == 27) { // escape
+      this.stopRecording();
+    }
+  };
+
+  GUIRecorder.prototype.stopRecording = function stopRecording () {
+
+    if (!this.events) {
+      throw new Error('Recording not started!');
+    }
+
     var _this = this;
     var log = function (event) {
       _this.logEvent(event);
     };
-    window.document.addEventListener('mouseover', log);
+
+    for (var i = 0; i < MOUSE_EVENTS.length; i++) {
+      window.document.removeEventListener(MOUSE_EVENTS[i], this.logBound);
+    }
+
+    console.log('Recording stopped!');
+
   };
+
+  GUIRecorder.prototype.playRecord = function () {
+    playRecord(this.events);
+  };
+
+  function playRecord (record) {
+
+    if (!record) {
+      throw  new Error('record must be not null!');
+    }
+
+    var queue = record.concat().reverse();
+
+    console.log('playback started with ' + queue.length + ' events');
+
+    if (!queue.length) {
+      return;
+    }
+
+    var cursor = getCursor();
+
+    playNextEvent(queue);
+
+    function playNextEvent (events, currentEvent) {
+      if (currentEvent) {
+        currentEvent.target.dispatchEvent(currentEvent);
+        cursor.style.left = currentEvent.clientX + 'px';
+        cursor.style.top = currentEvent.clientY + 'px';
+      }
+
+      if (!events.length) {
+        console.log('playback end');
+        return;
+      }
+      var nextEvent = events.pop();
+      var timeout = Math.min(nextEvent.timeStamp - ( currentEvent ? currentEvent.timeStamp : nextEvent.timeStamp ), MAX_TIMEOUT);
+
+      console.log('playing event:', nextEvent.type, nextEvent.clientX, nextEvent.clientY, nextEvent.target );
+
+      setTimeout(function() {
+        playNextEvent(events, nextEvent);
+      }, timeout);
+    }
+
+  }
+
+  function getCursor () {
+
+    var cursor = document.getElementById('gui-recorder-cursor');
+
+    if(!cursor) {
+      cursor = document.createElement('div');
+      cursor.style.position = 'fixed';
+      cursor.style.width = '16px';
+      cursor.style.height = '16px';
+      cursor.style.backgroundColor = '#FF0000';
+      cursor.style.zIndex = 9999;
+      cursor.id = 'gui-recorder-cursor';
+      document.body.appendChild(cursor);
+    }
+
+    return cursor;
+
+  }
+
+  GUIRecorder.playRecord = playRecord;
 
   GUIRecorder.prototype.logEvent = function logEvent(event) {
     this.events.push(event);
-    console.log(event);
+    // console.log(event);
   };
+
+
 
   function getDomPath(el) {
     if (!el) {
@@ -66,6 +176,42 @@ var GUIRecorder = (function () {
     }
     stack.splice(0,1); // removes the html element
     return stack.join(' > ');
+  }
+
+  function constructMouseEvent(type, sx, sy, cx, cy) {
+
+    var evt;
+    var e = {
+      bubbles: true,
+      cancelable: (type != "mousemove"),
+      view: window,
+      detail: 0,
+      screenX: sx,
+      screenY: sy,
+      clientX: cx,
+      clientY: cy,
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      button: 0,
+      relatedTarget: undefined
+    };
+    if (typeof( document.createEvent ) == "function") {
+      evt = document.createEvent("MouseEvents");
+      evt.initMouseEvent(type,
+        e.bubbles, e.cancelable, e.view, e.detail,
+        e.screenX, e.screenY, e.clientX, e.clientY,
+        e.ctrlKey, e.altKey, e.shiftKey, e.metaKey,
+        e.button, document.body.parentNode);
+    } else if (document.createEventObject) {
+      evt = document.createEventObject();
+      for (prop in e) {
+        evt[prop] = e[prop];
+      }
+      evt.button = { 0:1, 1:4, 2:2 }[evt.button] || evt.button;
+    }
+    return evt;
   }
 
   return GUIRecorder;
