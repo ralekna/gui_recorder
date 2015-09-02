@@ -13,5 +13,8 @@
     "recorder"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/ralekna/gui_recorder"
+  "homepage": "https://github.com/ralekna/gui_recorder",
+  "dependencies": {
+    "jquery": "~1.9"
+  }
 }

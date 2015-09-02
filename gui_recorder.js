@@ -3,11 +3,22 @@
  */
 var GUIRecorder = (function () {
 
-  var MOUSE_EVENTS = 'mousemove mouseover mouseout mousedown mouseup click DOMMouseScroll'.split(' ');
+  var MOUSE_EVENTS = 'mousemove mouseover mouseout mousedown mouseup click scroll'.split(' ');
 
   var WHEEL_EVENTS = '';
 
   var MAX_TIMEOUT = 5000;
+
+  var BUTTONS_COLOR_TABLE = {
+    0: 'rgba(158,   158, 158, 0.5)',
+    1: 'rgba( 251,    8,   8, 0.5)',
+    2: 'rgba(   8,  251,   8, 0.5)',
+    3: 'rgba( 251,  251,   8, 0.5)',
+    4: 'rgba(   8,    8, 251, 0.5)',
+    5: 'rgba( 251,    8, 251, 0.5)',
+    6: 'rgba(   8,  251, 251, 0.5)',
+    7: 'rgba( 251,  251, 251, 0.5)'
+  };
 
   function GUIRecorder () {
     var _this = this;
@@ -86,9 +97,12 @@ var GUIRecorder = (function () {
 
     function playNextEvent (events, currentEvent) {
       if (currentEvent) {
-        currentEvent.target.dispatchEvent(currentEvent);
+        triggerEvent(currentEvent);
+        // $(currentEvent.target).trigger(currentEvent);
         cursor.style.left = currentEvent.clientX + 'px';
         cursor.style.top = currentEvent.clientY + 'px';
+        cursor.style.backgroundColor = BUTTONS_COLOR_TABLE[currentEvent.buttons]; // .buttons == 0 ) ? 'rgba(251, 8, 8, 0.5)' : 'rgba(158, 158, 158, 0.5)';
+        console.log(currentEvent.buttons);
       }
 
       if (!events.length) {
@@ -98,7 +112,7 @@ var GUIRecorder = (function () {
       var nextEvent = events.pop();
       var timeout = Math.min(nextEvent.timeStamp - ( currentEvent ? currentEvent.timeStamp : nextEvent.timeStamp ), MAX_TIMEOUT);
 
-      console.log('playing event:', nextEvent.type, nextEvent.clientX, nextEvent.clientY, nextEvent.target );
+      // console.log('playing event:', nextEvent.type, nextEvent.clientX, nextEvent.clientY, nextEvent.target );
 
       setTimeout(function() {
         playNextEvent(events, nextEvent);
@@ -116,7 +130,7 @@ var GUIRecorder = (function () {
       cursor.style.position = 'fixed';
       cursor.style.width = '16px';
       cursor.style.height = '16px';
-      cursor.style.backgroundColor = '#FF0000';
+      cursor.style.backgroundColor = 'rgba(158, 158, 158, 0.5)';
       cursor.style.zIndex = 9999;
       cursor.id = 'gui-recorder-cursor';
       document.body.appendChild(cursor);
@@ -133,6 +147,12 @@ var GUIRecorder = (function () {
     // console.log(event);
   };
 
+
+  function triggerEvent(originalEvent) {
+    var element = $(originalEvent.target);
+    var event = jQuery.Event( originalEvent.type, originalEvent);
+    element.trigger(event);
+  }
 
 
   function getDomPath(el) {
